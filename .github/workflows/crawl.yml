@@ -14,7 +14,7 @@ jobs:
           python-version: "3.11"
       - name: Install Crawl4AI + Playwright
         run: |
-          pip install -U "crawl4ai==0.6.3" playwright
+          pip install -U "crawl4ai==0.6.3" "sentence-transformers==2.6.1" playwright
           python -m playwright install --with-deps chromium
       - name: Run crawler
         run: python generate_context.py
