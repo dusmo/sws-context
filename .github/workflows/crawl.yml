@@ -1,31 +1,38 @@
 name: Crawl SWS
 on:
   schedule:
-    - cron: "0 2 * * *"
+    - cron: '0 2 * * *'
   workflow_dispatch: {}
 jobs:
   crawl:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - name: Install Crawl4AI + Playwright
-        run: |
-          pip install -U "crawl4ai==0.6.3" playwright
-          playwright install chromium
+          python-version: '3.11'
+
+      - name: Install Crawl4AI
+        run: pip install -U crawl4ai
+
       - name: Run crawler
         run: python generate_context.py
+
+      - name: Build embeddings (MiniLM)
+        run: |
+          pip install sentence-transformers --quiet
+          python generate_vectors.py
+
       - name: Commit updated context
         run: |
-          git config --global user.name  "github-actions[bot]"
           git config --global user.email "github-actions@users.noreply.github.com"
+          git config --global user.name  "github-actions[bot]"
           if [[ `git status --porcelain` ]]; then
-            git add context/sws_context.txt
+            git add context/sws_context.txt context/vectors.json.gz
             git commit -m "chore: update context $(date -u +'%Y-%m-%d')"
             git push
           else
-            echo "No changes"
+            echo "No changes to commit"
           fi
