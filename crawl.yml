@@ -1,0 +1,38 @@
+name: Crawl SWS
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # ogni notte alle 02:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Crawl4AI + Playwright
+        run: |
+          pip install -U "crawl4ai==0.6.3" playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Run crawler
+        run: python generate_context.py
+
+      - name: Commit updated context
+        run: |
+          git config --global user.email "github-actions@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          if [[ `git status --porcelain` ]]; then
+            git add context/sws_context.txt
+            git commit -m "chore: update sws_context $(date -u +'%Y-%m-%d')"
+            git push
+          else
+            echo "No changes to commit"
+          fi 
