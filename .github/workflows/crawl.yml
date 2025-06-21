@@ -18,12 +18,14 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Run crawler
         run: python generate_context.py
+      - name: Build embeddings
+        run: python generate_vectors.py
       - name: Commit updated context
         run: |
           git config --global user.name  "github-actions[bot]"
           git config --global user.email "github-actions@users.noreply.github.com"
           if [[ `git status --porcelain` ]]; then
-            git add context/sws_context.txt
+            git add context/sws_context.txt context/vectors.json.gz
             git commit -m "chore: update context $(date -u +'%Y-%m-%d')"
             git push
           else
